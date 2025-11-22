@@ -1,4 +1,5 @@
 # Flashcard App Setup Instructions
+update as of 11.22
 
 ## Prerequisites
 - Node.js (v18 or higher)
@@ -49,7 +50,7 @@ The frontend will run on http://localhost:3000
 2. Integrate Claude API or OpenAI API for AI generation
 3. Add user authentication
 4. Add study mode with spaced repetition
-5. Export flashcards to CSV/PDF
+5. Copy/paste youtube URLs and generate ?s
 
 ## API Endpoints
 

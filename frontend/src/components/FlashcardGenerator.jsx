@@ -1,14 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import axios from 'axios';
 
-export default function FlashcardGenerator() {
+export default function FlashcardGenerator({ loadedSet, onClearLoaded }) {
   const [activeTab, setActiveTab] = useState('describe');
   const [inputText, setInputText] = useState('');
   const [flashcards, setFlashcards] = useState([]);
   const [flippedCards, setFlippedCards] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Load flashcards when a set is loaded from saved sets
+  useEffect(() => {
+    if (loadedSet) {
+      setFlashcards(loadedSet.flashcards);
+      setInputText(loadedSet.title);
+      setFlippedCards({});
+    }
+  }, [loadedSet]);
 
   const parseFlashcards = (text) => {
     const lines = text.split('\n').filter(line => line.trim());
@@ -38,7 +47,7 @@ export default function FlashcardGenerator() {
     try {
       if (activeTab === 'describe') {
         // Call backend API to generate flashcards from topic description
-        const response = await axios.post('/api/flashcards/generate', {
+        const response = await axios.post('http://localhost:5001/api/flashcards/generate', {
           topic: inputText
         });
         setFlashcards(response.data.flashcards);
@@ -52,6 +61,7 @@ export default function FlashcardGenerator() {
         }
       }
       setFlippedCards({});
+      if (onClearLoaded) onClearLoaded();
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to generate flashcards');
       console.error('Error generating flashcards:', err);
@@ -72,12 +82,13 @@ export default function FlashcardGenerator() {
     setInputText('');
     setFlippedCards({});
     setError('');
+    if (onClearLoaded) onClearLoaded();
   };
 
   const saveFlashcardSet = async () => {
     try {
-      const response = await axios.post('/api/flashcards/save', {
-        title: inputText.slice(0, 50),
+      const response = await axios.post('http://localhost:5001/api/flashcards/save', {
+        title: inputText.slice(0, 50) || 'Untitled Set',
         flashcards
       });
       alert('Flashcard set saved successfully!');
@@ -115,7 +126,7 @@ export default function FlashcardGenerator() {
                     : 'bg-white/10 text-white/70 hover:bg-white/20'
                 }`}
               >
-                Describe topic
+                Paste URL
               </button>
             </div>
 
