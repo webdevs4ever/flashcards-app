@@ -16,6 +16,7 @@ Navigate to your backend folder and install the Anthropic SDK:
 cd backend
 npm install @anthropic-ai/sdk
 ```
+### Updated key on 12.22
 
 ### 2. Get Your Anthropic API Key
 
