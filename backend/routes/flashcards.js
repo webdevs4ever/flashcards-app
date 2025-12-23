@@ -1,7 +1,22 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
+import Anthropic from '@anthropic-ai/sdk';
 import { flashcardSetDB, flashcardDB } from '../database.js';
 
 const router = express.Router();
+
+// Initialize Anthropic client
+const anthropic = new Anthropic({
+ apiKey: process.env.ANTHROPIC_API_KEY
+});
+
+
+
+// DEBUG: Log to verify API key is loading
+console.log('API Key loaded in routes:', process.env.ANTHROPIC_API_KEY ? 'YES ✓' : 'NO ✗');
+console.log('API Key starts with:', process.env.ANTHROPIC_API_KEY?.substring(0, 10));
 
 // Generate flashcards from topic description
 router.post('/generate', async (req, res) => {
@@ -12,11 +27,50 @@ router.post('/generate', async (req, res) => {
       return res.status(400).json({ error: 'Topic is required' });
     }
 
-    // TODO: Integrate with Claude API to generate flashcards
-    // For now, return mock data
-    const mockFlashcards = generateMockFlashcards(topic);
+    // Use Claude API to generate flashcards
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      messages: [{
+        role: 'user',
+        content: `Generate 10 educational flashcards about: ${topic}
 
-    res.json({ flashcards: mockFlashcards });
+Create flashcards that would help someone learn this topic effectively. Each flashcard should have:
+- A clear, concise term or question on the front
+- A detailed but focused definition or answer on the back
+
+Format your response as a JSON array like this:
+[
+  {
+    "term": "Front of card",
+    "definition": "Back of card"
+  }
+]
+
+IMPORTANT: Respond ONLY with valid JSON. Do not include any markdown formatting, code blocks, or additional text.`
+      }]
+    });
+
+    // Parse Claude's response
+    let flashcards;
+    try {
+      const responseText = message.content[0].text.trim();
+      // Remove markdown code blocks if present
+      const cleanedText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const parsedData = JSON.parse(cleanedText);
+      
+      // Add IDs to each flashcard
+      flashcards = parsedData.map((card, index) => ({
+        ...card,
+        id: Date.now() + index
+      }));
+    } catch (parseError) {
+      console.error('Error parsing Claude response:', parseError);
+      console.error('Raw response:', message.content[0].text);
+      return res.status(500).json({ error: 'Failed to parse flashcards from AI' });
+    }
+
+    res.json({ flashcards });
   } catch (error) {
     console.error('Error generating flashcards:', error);
     res.status(500).json({ error: 'Failed to generate flashcards' });
@@ -169,29 +223,5 @@ router.delete('/cards/:id', (req, res) => {
     res.status(500).json({ error: 'Failed to delete flashcard' });
   }
 });
-
-// Mock flashcard generator (replace with AI integration)
-function generateMockFlashcards(topic) {
-  const templates = {
-    'capitals': [
-      { term: 'France', definition: 'Paris', id: Date.now() + 1 },
-      { term: 'Japan', definition: 'Tokyo', id: Date.now() + 2 },
-      { term: 'Brazil', definition: 'Brasília', id: Date.now() + 3 },
-      { term: 'Australia', definition: 'Canberra', id: Date.now() + 4 },
-      { term: 'Canada', definition: 'Ottawa', id: Date.now() + 5 }
-    ],
-    'default': [
-      { term: 'Term 1', definition: `Definition for ${topic} - 1`, id: Date.now() + 1 },
-      { term: 'Term 2', definition: `Definition for ${topic} - 2`, id: Date.now() + 2 },
-      { term: 'Term 3', definition: `Definition for ${topic} - 3`, id: Date.now() + 3 }
-    ]
-  };
-
-  if (topic.toLowerCase().includes('capital')) {
-    return templates.capitals;
-  }
-
-  return templates.default;
-}
 
 export default router;

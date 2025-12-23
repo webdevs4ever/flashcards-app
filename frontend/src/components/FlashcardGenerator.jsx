@@ -126,7 +126,7 @@ export default function FlashcardGenerator({ loadedSet, onClearLoaded }) {
                     : 'bg-white/10 text-white/70 hover:bg-white/20'
                 }`}
               >
-                Paste URL
+                Describe topic
               </button>
             </div>
 
@@ -136,7 +136,7 @@ export default function FlashcardGenerator({ loadedSet, onClearLoaded }) {
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder={
                   activeTab === 'describe'
-                    ? "Describe a topic Claude will generate the details...\n\ne.g. capitals of the world\ne.g. fun facts about San Diego"
+                    ? "Describe a topic and Claude will generate flashcards...\n\ne.g., Capitals of European countries\ne.g., Key concepts in photosynthesis\ne.g., Spanish vocabulary for food"
                     : "Paste your flashcards:\nUSA --> United States of America\nUK --> United Kingdom\nEU --> European Union"
                 }
                 className="w-full h-64 text-gray-600 text-lg resize-none focus:outline-none placeholder-gray-400"

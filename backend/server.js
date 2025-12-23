@@ -7,24 +7,7 @@ import flashcardRoutes from './routes/flashcards.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-
-// backend/server.js or backend/routes/flashcards.js
-// import Anthropic from '@anthropic-ai/sdk';
-
-// const anthropic = new Anthropic({
-//  apiKey: process.env.ANTHROPIC_API_KEY
-// });
-
-// Use it to generate flashcards
-// const message = await anthropic.messages.create({
-//   model: 'claude-sonnet-4-5-20250929',
-//   max_tokens: 1024,
-//   messages: [{
-//     role: 'user',
-//     content: 'Generate 5 flashcards about photosynthesis'
-//   }]
-// });
+const PORT = process.env.PORT || 5001;
 
 // Initialize database
 initializeDatabase();
